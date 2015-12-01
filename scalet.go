@@ -12,6 +12,8 @@ type ScaletService interface {
 	List() (*[]Scalet, *Response, error)
 	GetByID(int) (*Scalet, *Response, error)
 	Create(*ScaletCreateRequest) (*Scalet, *Response, error)
+	Restart(int) (*Scalet, *Response, error)
+	Rebuild(*ScaletRebuildRequest) (*Scalet, *Response, error)
 }
 
 type ScaletServiceOp struct {
@@ -49,6 +51,11 @@ type ScaletCreateRequest struct {
 	Keys     []int  `json:"keys"`
 	Password string `json:"password"`
 	Location string `json:"location"`
+}
+
+type ScaletRebuildRequest struct {
+	ID       int
+	Password string `json:"password"`
 }
 
 func (s Scalet) String() string {
@@ -104,5 +111,42 @@ func (s ScaletServiceOp) Create(createRequest *ScaletCreateRequest) (*Scalet, *R
 		return nil, nil, err
 	}
 
+	return scalet, resp, err
+}
+
+func (s ScaletServiceOp) Restart(ctid int) (*Scalet, *Response, error) {
+	if ctid < 1 {
+		return nil, nil, NewArgError("scaletID", "cannot be less than 1")
+	}
+	path := fmt.Sprintf("%s/%d/restart", scaletsBasePath, ctid)
+	req, err := s.client.NewRequest("PATCH", path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	scalet := &Scalet{}
+	resp, err := s.client.Do(req, scalet)
+	if err != nil {
+		return nil, nil, err
+	}
+	return scalet, resp, err
+}
+
+func (s *ScaletServiceOp) Rebuild(rebuildRequest *ScaletRebuildRequest) (*Scalet, *Response, error) {
+	if rebuildRequest == nil {
+		return nil, nil, NewArgError("rebuildRequest", "cannot be nil")
+	}
+
+	path := fmt.Sprintf("%s/%d/rebuild", scaletsBasePath, rebuildRequest.ID)
+	req, err := s.client.NewRequest("PATCH", path, rebuildRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	scalet := &Scalet{}
+	resp, err := s.client.Do(req, scalet)
+	if err != nil {
+		return nil, nil, err
+	}
 	return scalet, resp, err
 }

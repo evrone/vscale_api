@@ -287,3 +287,137 @@ func TestScaletCreate(t *testing.T) {
 		t.Errorf("Scalet.Create returned %+v, expected %+v", scalet, expected)
 	}
 }
+
+func TestScaletRestart(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/v1/scalets/10299/restart", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "PATCH")
+
+		response := `
+    {
+      "active":true,
+      "location":"spb0",
+      "ctid":10299,
+      "name":"Eternal-Hungry",
+      "created":"20.07.2015 16:54:31",
+      "public_address":{
+         "gateway":"95.213.191.1",
+         "netmask":"255.255.255.0",
+         "address":"95.213.191.24"
+      },
+      "status":"started",
+      "private_address":{},
+      "rplan":"medium",
+      "deleted":null,
+      "hostname":"cs10299.vscale.io",
+      "keys": [
+        {
+            "name": "somekeyname",
+            "id": 16
+        }
+      ],
+      "locked":false,
+      "made_from":"ubuntu_14.04_64_002_master"
+    }`
+
+		fmt.Fprint(w, response)
+	})
+
+	sclt, _, err := client.Scalet.Restart(10299)
+	if err != nil {
+		t.Errorf("Scalet.Restart returned error: %v", err)
+	}
+
+	expected := &Scalet{
+		Name:           "Eternal-Hungry",
+		Hostname:       "cs10299.vscale.io",
+		Locked:         false,
+		Location:       "spb0",
+		Rplan:          "medium",
+		Active:         true,
+		Keys:           []SSHKey{SSHKey{ID: 16, Name: "somekeyname"}},
+		PublicAddress:  &ScaletAddress{Netmask: "255.255.255.0", Gateway: "95.213.191.1", Address: "95.213.191.24"},
+		Status:         "started",
+		MadeFrom:       "ubuntu_14.04_64_002_master",
+		CTID:           10299,
+		PrivateAddress: &ScaletAddress{Netmask: "", Gateway: "", Address: ""},
+	}
+
+	if !reflect.DeepEqual(sclt, expected) {
+		t.Errorf("Scalet.GetByID returned %+v, expected %+v", sclt, expected)
+	}
+}
+
+func TestScaletRebuild(t *testing.T) {
+	setup()
+	defer teardown()
+
+	rebuildRequest := &ScaletRebuildRequest{
+		ID: 15508,
+	}
+
+	mux.HandleFunc("/v1/scalets/15508/rebuild", func(w http.ResponseWriter, r *http.Request) {
+		v := new(ScaletRebuildRequest)
+		err := json.NewDecoder(r.Body).Decode(v)
+		if err != nil {
+			t.Fatalf("decode json: %v", err)
+		}
+
+		testMethod(t, r, "PATCH")
+
+		response := `
+    {
+      "public_address":{
+        "netmask":"255.255.255.0",
+        "gateway":"95.213.194.1",
+        "address":"95.213.194.37"
+      },
+      "made_from":"ubuntu_14.04_64_002_master",
+      "rplan":"medium",
+      "location":"spb0",
+      "name":"Minimum-Windshield",
+      "created":"25.09.2015 12:19:05",
+      "active":true,
+      "locked":false,
+      "status":"started",
+      "ctid":15508,
+      "private_address":{},
+      "deleted":null,
+      "keys":[
+        {
+          "id":72,
+          "name":"key"
+        }
+      ],
+      "hostname":"cs15508.vscale.io"
+    }`
+
+		fmt.Fprint(w, response)
+	})
+
+	sclt, _, err := client.Scalet.Rebuild(rebuildRequest)
+	if err != nil {
+		t.Errorf("Scalet.Restart returned error: %v", err)
+	}
+
+	expected := &Scalet{
+		Name:           "Minimum-Windshield",
+		Hostname:       "cs15508.vscale.io",
+		Locked:         false,
+		Location:       "spb0",
+		Rplan:          "medium",
+		Active:         true,
+		Keys:           []SSHKey{SSHKey{ID: 72, Name: "key"}},
+		PublicAddress:  &ScaletAddress{Netmask: "255.255.255.0", Gateway: "95.213.194.1", Address: "95.213.194.37"},
+		Status:         "started",
+		MadeFrom:       "ubuntu_14.04_64_002_master",
+		CTID:           15508,
+		PrivateAddress: &ScaletAddress{Netmask: "", Gateway: "", Address: ""},
+	}
+
+	if !reflect.DeepEqual(sclt, expected) {
+		t.Errorf("Scalet.GetByID returned %+v, expected %+v", sclt, expected)
+	}
+}

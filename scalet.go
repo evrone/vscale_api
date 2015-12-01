@@ -81,3 +81,5 @@ func (s ScaletServiceOp) GetByID(ctid int) (*Scalet, *Response, error) {
 	}
 	return scalet, resp, err
 }
+
+// TODO: Add mode methods

@@ -26,6 +26,7 @@ type Client struct {
 	// Vscale services
 	Account AccountService
 	Scalet  ScaletService
+	SSHKey  SSHService
 
 	// Optional
 	onRequestCompleted RequestCompletionCallback
@@ -71,6 +72,7 @@ func NewClient(httpClient *http.Client, token string) *Client {
 
 	c.Account = &AccountServiceOp{client: c}
 	c.Scalet = &ScaletServiceOp{client: c}
+	c.SSHKey = &SSHServiceOp{client: c}
 
 	return c
 }

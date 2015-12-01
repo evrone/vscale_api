@@ -26,17 +26,12 @@ type Scalet struct {
 	Location       string         `json:"location,omitempty"`
 	Rplan          string         `json:"rplan,omitempty"`
 	Active         bool           `json:"active,omitempty"`
-	Keys           []ScaletKey    `json:"keys,omitempty"`
+	Keys           []SSHKey       `json:"keys,omitempty"`
 	PublicAddress  *ScaletAddress `json:"public_address,omitempty"`
 	Status         string         `json:"status,omitempty"`
 	MadeFrom       string         `json:"made_from,omitempty"`
 	CTID           int            `json:"ctid,omitempty"`
 	PrivateAddress *ScaletAddress `json:"private_address,omitempty"`
-}
-
-type ScaletKey struct {
-	ID   int    `json:"id,omitempty"`
-	Name string `json:"name,omitempty"`
 }
 
 type ScaletAddress struct {

@@ -1,6 +1,7 @@
 package vscale
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -202,5 +203,87 @@ func TestGetScaletByID(t *testing.T) {
 
 	if !reflect.DeepEqual(sclt, expected) {
 		t.Errorf("Scalet.GetByID returned %+v, expected %+v", sclt, expected)
+	}
+}
+
+func TestScaletCreate(t *testing.T) {
+	setup()
+	defer teardown()
+
+	createRequest := &ScaletCreateRequest{
+		MakeFrom: "ubuntu_14.04_64_002_master",
+		Rplan:    "medium",
+		DoStart:  true,
+		Name:     "New-Test",
+		Keys:     []int{16},
+		Location: "spb0",
+	}
+
+	mux.HandleFunc("/v1/scalets", func(w http.ResponseWriter, r *http.Request) {
+		v := new(ScaletCreateRequest)
+		err := json.NewDecoder(r.Body).Decode(v)
+		if err != nil {
+			t.Fatalf("decode json: %v", err)
+		}
+
+		testMethod(t, r, "POST")
+
+		if !reflect.DeepEqual(v, createRequest) {
+			t.Errorf("Request body: %+v, expected: %+v", v, createRequest)
+		}
+
+		response := `
+{
+    "status": "defined",
+    "deleted": null,
+    "public_address": {},
+    "active": false,
+    "location": "spb0",
+    "locked": true,
+    "hostname": "cs11533.vscale.io",
+    "created": "20.08.2015 14:57:04",
+    "keys": [
+      {
+          "name": "somekeyname",
+          "id": 16
+      }
+    ],
+    "private_address": {},
+    "made_from": "ubuntu_14.04_64_002_master",
+    "name": "New-Test",
+    "ctid": 11,
+    "rplan": "medium"
+}`
+
+		fmt.Fprint(w, response)
+	})
+
+	scalet, _, err := client.Scalet.Create(createRequest)
+	if err != nil {
+		t.Errorf("Scalet.Create returned error: %v", err)
+	}
+
+	expected := &Scalet{
+		Name:     "New-Test",
+		Hostname: "cs11533.vscale.io",
+		Locked:   true,
+		Location: "spb0",
+		Rplan:    "medium",
+		Active:   false,
+		Keys: []SSHKey{
+			SSHKey{
+				Name: "somekeyname",
+				ID:   16,
+			},
+		},
+		PublicAddress:  &ScaletAddress{},
+		Status:         "defined",
+		MadeFrom:       "ubuntu_14.04_64_002_master",
+		CTID:           11,
+		PrivateAddress: &ScaletAddress{},
+	}
+
+	if !reflect.DeepEqual(scalet, expected) {
+		t.Errorf("Scalet.Create returned %+v, expected %+v", scalet, expected)
 	}
 }

@@ -11,6 +11,7 @@ const (
 type ScaletService interface {
 	List() (*[]Scalet, *Response, error)
 	GetByID(int) (*Scalet, *Response, error)
+	Create(*ScaletCreateRequest) (*Scalet, *Response, error)
 }
 
 type ScaletServiceOp struct {
@@ -38,6 +39,16 @@ type ScaletAddress struct {
 	Address string `json:"address,omitempty"`
 	Netmask string `json:"netmask,omitempty"`
 	Gateway string `json:"gateway,omitempty"`
+}
+
+type ScaletCreateRequest struct {
+	MakeFrom string `json:"make_from"`
+	Rplan    string `json:"rplan"`
+	DoStart  bool   `json:"do_start"`
+	Name     string `json:"name"`
+	Keys     []int  `json:"keys"`
+	Password string `json:"password"`
+	Location string `json:"location"`
 }
 
 func (s Scalet) String() string {
@@ -77,4 +88,21 @@ func (s ScaletServiceOp) GetByID(ctid int) (*Scalet, *Response, error) {
 	return scalet, resp, err
 }
 
-// TODO: Add mode methods
+func (s ScaletServiceOp) Create(createRequest *ScaletCreateRequest) (*Scalet, *Response, error) {
+	if createRequest == nil {
+		return nil, nil, NewArgError("createRequest", "cannot be nil")
+	}
+
+	req, err := s.client.NewRequest("POST", scaletsBasePath, createRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	scalet := new(Scalet)
+	resp, err := s.client.Do(req, scalet)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return scalet, resp, err
+}

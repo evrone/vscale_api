@@ -483,3 +483,65 @@ func TestScaletHalt(t *testing.T) {
 		t.Errorf("Scalet.Halt returned %+v, expected %+v", sclt, expected)
 	}
 }
+
+func TestScaletStart(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/v1/scalets/10299/start", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "PATCH")
+
+		response := `
+    {
+      "location": "spb0",
+      "keys": [
+          {
+              "name": "key",
+              "id": 72
+          }
+      ],
+      "created": "27.08.2015 14:22:39",
+      "hostname": "cs12669.vscale.io",
+      "ctid": 10299,
+      "status": "stopped",
+      "deleted": null,
+      "rplan": "medium",
+      "name": "Icy-Compass",
+      "made_from": "ubuntu_14.04_64_002_master",
+      "active": true,
+      "locked": false,
+      "public_address": {
+          "gateway": "95.213.199.1",
+          "address": "95.213.199.48",
+          "netmask": "255.255.255.0"
+      },
+      "private_address": {}
+    }`
+
+		fmt.Fprint(w, response)
+	})
+
+	sclt, _, err := client.Scalet.Start(10299)
+	if err != nil {
+		t.Errorf("Scalet.Start returned error: %v", err)
+	}
+
+	expected := &Scalet{
+		Name:           "Icy-Compass",
+		Hostname:       "cs12669.vscale.io",
+		Locked:         false,
+		Location:       "spb0",
+		Rplan:          "medium",
+		Active:         true,
+		Keys:           []SSHKey{SSHKey{ID: 72, Name: "key"}},
+		PublicAddress:  &ScaletAddress{Netmask: "255.255.255.0", Gateway: "95.213.199.1", Address: "95.213.199.48"},
+		Status:         "stopped",
+		MadeFrom:       "ubuntu_14.04_64_002_master",
+		CTID:           10299,
+		PrivateAddress: &ScaletAddress{Netmask: "", Gateway: "", Address: ""},
+	}
+
+	if !reflect.DeepEqual(sclt, expected) {
+		t.Errorf("Scalet.Start returned %+v, expected %+v", sclt, expected)
+	}
+}

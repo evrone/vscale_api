@@ -15,6 +15,7 @@ type ScaletService interface {
 	Restart(int) (*Scalet, *Response, error)
 	Rebuild(*ScaletRebuildRequest) (*Scalet, *Response, error)
 	Halt(int) (*Scalet, *Response, error)
+	Start(int) (*Scalet, *Response, error)
 }
 
 type ScaletServiceOp struct {
@@ -157,6 +158,24 @@ func (s *ScaletServiceOp) Halt(ctid int) (*Scalet, *Response, error) {
 		return nil, nil, NewArgError("scaletID", "cannot be less than 1")
 	}
 	path := fmt.Sprintf("%s/%d/stop", scaletsBasePath, ctid)
+	req, err := s.client.NewRequest("PATCH", path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	scalet := &Scalet{}
+	resp, err := s.client.Do(req, scalet)
+	if err != nil {
+		return nil, nil, err
+	}
+	return scalet, resp, err
+}
+
+func (s *ScaletServiceOp) Start(ctid int) (*Scalet, *Response, error) {
+	if ctid < 1 {
+		return nil, nil, NewArgError("scaletID", "cannot be less than 1")
+	}
+	path := fmt.Sprintf("%s/%d/start", scaletsBasePath, ctid)
 	req, err := s.client.NewRequest("PATCH", path, nil)
 	if err != nil {
 		return nil, nil, err

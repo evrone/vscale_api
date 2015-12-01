@@ -3,56 +3,55 @@ package vscale
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 	"testing"
 )
 
-func TestAccount(t *testing.T) {
+func TestAccountGet(t *testing.T) {
 	setup()
 	defer teardown()
 
-	mux.HandleFunc("/account",
-		func(w http.ResponseWriter, r *http.Request) {
-			testMethod(t, r, "GET")
-			fmt.Fprint(w, `{
-  "info": {
-      "actdate": "2015-07-07 08:16:47.107987",
-      "country": "",
-      "email": "username@domain.ru",
-      "face_id": "1",
-      "id": "1001",
-      "locale": "ru",
-      "middlename": "\u042E\u0437\u0435\u0440\u043E\u0432\u0438\u0447",
-      "mobile": "+79901234567",
-      "name": "\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C",
-      "state": "1",
-      "surname": "\u0412\u0441\u043A\u0430\u043B\u0435\u0442\u043E\u0432"
-  }
-}`)
-		},
-	)
+	mux.HandleFunc("/v1/account", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
 
-	account, err := client.Account()
+		response := `
+    {
+      "info": {
+          "actdate": "2015-07-07 08:16:47.107987",
+          "country": "",
+          "email": "username@example.com",
+          "face_id": "1",
+          "id": "1001",
+          "locale": "ru",
+          "middlename": "MiddleName",
+          "mobile": "+79901234567",
+          "name": "UserName",
+          "state": "1",
+          "surname": "SurName"
+      }
+    }`
+		fmt.Fprint(w, response)
 
+	})
+
+	acct, _, err := client.Account.Get()
 	if err != nil {
-		t.Errorf("Account returned error: %v", err)
+		t.Errorf("Account.Get returned error: %v", err)
 	}
 
-	want := `{
-  "info": {
-      "actdate": "2015-07-07 08:16:47.107987",
-      "country": "",
-      "email": "username@domain.ru",
-      "face_id": "1",
-      "id": "1001",
-      "locale": "ru",
-      "middlename": "\u042E\u0437\u0435\u0440\u043E\u0432\u0438\u0447",
-      "mobile": "+79901234567",
-      "name": "\u041F\u043E\u043B\u044C\u0437\u043E\u0432\u0430\u0442\u0435\u043B\u044C",
-      "state": "1",
-      "surname": "\u0412\u0441\u043A\u0430\u043B\u0435\u0442\u043E\u0432"
-  }
-}`
-	if want != account {
-		t.Errorf("Expected: %+v real: %+v", want, account)
+	expected := &Account{
+		ActivateDate: "2015-07-07 08:16:47.107987",
+		Country:      "",
+		FaceID:       1,
+		ID:           1001,
+		State:        1,
+		Email:        "username@example.com",
+		Name:         "UserName",
+		MiddleName:   "MiddleName",
+		SurName:      "SurName",
+	}
+
+	if !reflect.DeepEqual(acct, expected) {
+		t.Errorf("Account.Get returned %+v, expected %+v", acct, expected)
 	}
 }

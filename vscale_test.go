@@ -3,6 +3,7 @@ package vscale
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
@@ -20,19 +21,21 @@ func setup() {
 	mux = http.NewServeMux()
 	server = httptest.NewServer(mux)
 
-	client, _ = NewClient(testToken, server.URL)
+	client = NewClient(nil, "testtoken")
+	url, _ := url.Parse(server.URL)
+	client.BaseURL = url
 }
 
 func teardown() {
 	server.Close()
 }
 
-func testMethod(t *testing.T, r *http.Request, want string) {
-	if got := r.Method; got != want {
-		t.Errorf("Request method: %v, want %v", got, want)
+func testMethod(t *testing.T, r *http.Request, expected string) {
+	if expected != r.Method {
+		t.Errorf("Request method = %v, expected %v", r.Method, expected)
 	}
 
 	if token := r.Header.Get("X-Token"); token != testToken {
-		t.Errorf("X-Token should be %s, but is %s", testToken, token)
+		t.Errorf("Request token %v should equal test token %v", token, testToken)
 	}
 }

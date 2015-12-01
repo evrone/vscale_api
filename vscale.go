@@ -8,6 +8,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"reflect"
+
+	"github.com/google/go-querystring/query"
 )
 
 const (
@@ -38,6 +41,23 @@ type Response struct {
 type ErrorResponse struct {
 	Response *http.Response
 	Message  string
+}
+
+type ArgError struct {
+	arg, reason string
+}
+
+var _ error = &ArgError{}
+
+func NewArgError(arg, reason string) *ArgError {
+	return &ArgError{
+		arg:    arg,
+		reason: reason,
+	}
+}
+
+func (e *ArgError) Error() string {
+	return fmt.Sprintf("%s is invalid because %s", e.arg, e.reason)
 }
 
 func NewClient(httpClient *http.Client, token string) *Client {
@@ -147,4 +167,29 @@ func CheckResponse(r *http.Response) error {
 	}
 
 	return errorResponse
+}
+
+func addOptions(s string, opt interface{}) (string, error) {
+	v := reflect.ValueOf(opt)
+
+	if v.Kind() == reflect.Ptr && v.IsNil() {
+		return s, nil
+	}
+
+	origURL, err := url.Parse(s)
+	if err != nil {
+		return s, err
+	}
+
+	origValues := origURL.Query()
+	newValues, err := query.Values(opt)
+	if err != nil {
+		return s, err
+	}
+
+	for k, v := range newValues {
+		origValues[k] = v
+	}
+	origURL.RawQuery = origValues.Encode()
+	return origURL.String(), nil
 }

@@ -16,6 +16,7 @@ type ScaletService interface {
 	Rebuild(*ScaletRebuildRequest) (*Scalet, *Response, error)
 	Halt(int) (*Scalet, *Response, error)
 	Start(int) (*Scalet, *Response, error)
+	UpdatePlan(*ScaletUpdatePlanRequest) (*Scalet, *Response, error)
 }
 
 type ScaletServiceOp struct {
@@ -58,6 +59,11 @@ type ScaletCreateRequest struct {
 type ScaletRebuildRequest struct {
 	ID       int
 	Password string `json:"password"`
+}
+
+type ScaletUpdatePlanRequest struct {
+	ID    int
+	Rplan string `json:"rplan"`
 }
 
 func (s Scalet) String() string {
@@ -182,6 +188,33 @@ func (s *ScaletServiceOp) Start(ctid int) (*Scalet, *Response, error) {
 	}
 
 	scalet := &Scalet{}
+	resp, err := s.client.Do(req, scalet)
+	if err != nil {
+		return nil, nil, err
+	}
+	return scalet, resp, err
+}
+
+func (s *ScaletServiceOp) UpdatePlan(rplanUpdateRequest *ScaletUpdatePlanRequest) (*Scalet, *Response, error) {
+	if rplanUpdateRequest == nil {
+		return nil, nil, NewArgError("rplanUpdateRequest", "cannot be nil")
+	}
+
+	if rplanUpdateRequest.ID < 1 {
+		return nil, nil, NewArgError("rplanUpdateRequest.ID", "cannot be less than 1")
+	}
+
+	if rplanUpdateRequest.Rplan == "" {
+		return nil, nil, NewArgError("rplanUpdateRequest.rplan", "cannot be empty")
+	}
+
+	path := fmt.Sprintf("%s/%d/upgrade", scaletsBasePath, rplanUpdateRequest.ID)
+	req, err := s.client.NewRequest("POST", path, rplanUpdateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	scalet := new(Scalet)
 	resp, err := s.client.Do(req, scalet)
 	if err != nil {
 		return nil, nil, err

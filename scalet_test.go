@@ -745,3 +745,51 @@ func AddSSHKeyToScalet(t *testing.T) {
 		t.Errorf("Scalet.AddSSHKeyToScalet returned %+v, expected %+v", sclt, expected)
 	}
 }
+
+func TestScaletTasks(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/v1/tasks", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+
+		response := `
+    [
+      {
+        "location": "spb0",
+        "d_insert": "2015-08-28 12:37:48",
+        "id": "3a447f17-3577-4c16-b26c-27bd52faa7c1",
+        "done": false,
+        "scalet": 12835,
+        "error": false,
+        "d_start": "2015-08-28 09:37:48",
+        "method": "scalet_create",
+        "d_end": null
+      }
+    ]`
+		fmt.Fprint(w, response)
+	})
+
+	tasks, _, err := client.Scalet.Tasks()
+	if err != nil {
+		t.Errorf("Scalet.Tasks returned error: %v", err)
+	}
+
+	expected := &[]ScaletTask{
+		ScaletTask{
+			ID:         "3a447f17-3577-4c16-b26c-27bd52faa7c1",
+			Location:   "spb0",
+			InsertDate: "2015-08-28 12:37:48",
+			StartDate:  "2015-08-28 09:37:48",
+			EndDate:    "",
+			Done:       false,
+			ScaletId:   12835,
+			Error:      false,
+			Method:     "scalet_create",
+		},
+	}
+
+	if !reflect.DeepEqual(tasks, expected) {
+		t.Errorf("Scalet.Tasks returned %+v, expected %+v", tasks, expected)
+	}
+}

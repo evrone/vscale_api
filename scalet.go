@@ -6,6 +6,7 @@ import (
 
 const (
 	scaletsBasePath = "/v1/scalets"
+	tasksBasePath   = "/v1/tasks"
 )
 
 type ScaletService interface {
@@ -19,6 +20,7 @@ type ScaletService interface {
 	UpdatePlan(*ScaletUpdatePlanRequest) (*Scalet, *Response, error)
 	Delete(int) (*Scalet, *Response, error)
 	AddSSHKeyToScalet(*SSHKeyAppendRequest) (*Scalet, *Response, error)
+	Tasks() (*[]ScaletTask, *Response, error)
 }
 
 type ScaletServiceOp struct {
@@ -71,6 +73,18 @@ type ScaletUpdatePlanRequest struct {
 type SSHKeyAppendRequest struct {
 	CTID int
 	Keys []int `json:"keys"`
+}
+
+type ScaletTask struct {
+	ID         string `json:"id,omitempty"`
+	Location   string `json:"location,omitempty"`
+	InsertDate string `json:"d_insert,omitempty"`
+	StartDate  string `json:"d_start,omitempty"`
+	EndDate    string `json:"d_end,omitempty"`
+	Done       bool   `json:"done,omitempty"`
+	ScaletId   int    `json:"scalet,omitempty"`
+	Error      bool   `json:"error,omitempty"`
+	Method     string `json:"method,omitempty"`
 }
 
 func (s Scalet) String() string {
@@ -245,6 +259,20 @@ func (s *ScaletServiceOp) Delete(ctid int) (*Scalet, *Response, error) {
 		return nil, nil, err
 	}
 	return scalet, resp, err
+}
+
+func (s *ScaletServiceOp) Tasks() (*[]ScaletTask, *Response, error) {
+	req, err := s.client.NewRequest("GET", tasksBasePath, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	tasks := &[]ScaletTask{}
+	resp, err := s.client.Do(req, tasks)
+	if err != nil {
+		return nil, nil, err
+	}
+	return tasks, resp, err
 }
 
 func (s *ScaletServiceOp) AddSSHKeyToScalet(appendSSHKeyRequest *SSHKeyAppendRequest) (*Scalet, *Response, error) {

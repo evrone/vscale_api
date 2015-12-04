@@ -613,3 +613,63 @@ func TestScaletUpdatePlan(t *testing.T) {
 		t.Errorf("Scalet.UpdatePlan returned %+v, expected %+v", sclt, expected)
 	}
 }
+
+func TestScaletDelete(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/v1/scalets/10299", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "DELETE")
+
+		response := `
+    {
+      "hostname":"cs10299.vscale.ru",
+      "locked":false,
+      "location":"spb0",
+      "rplan":"huge",
+      "name":"MyServer",
+      "active":true,
+      "keys": [
+        {
+            "name": "somekeyname",
+            "id": 16
+        }
+      ],
+      "public_address":{
+         "netmask":"255.255.255.0",
+         "gateway":"95.213.191.1",
+         "address":"95.213.191.120"
+      },
+      "status":"deleted",
+      "made_from":"ubuntu_14.04_64_002_master",
+      "ctid":10299,
+      "private_address":{}
+    }`
+
+		fmt.Fprint(w, response)
+	})
+
+	sclt, _, err := client.Scalet.Delete(10299)
+	if err != nil {
+		t.Errorf("Scalet.Start returned error: %v", err)
+	}
+
+	expected := &Scalet{
+		Name:           "MyServer",
+		Hostname:       "cs10299.vscale.ru",
+		Locked:         false,
+		Location:       "spb0",
+		Rplan:          "huge",
+		Active:         true,
+		Keys:           []SSHKey{SSHKey{ID: 16, Name: "somekeyname"}},
+		PublicAddress:  &ScaletAddress{Netmask: "255.255.255.0", Gateway: "95.213.191.1", Address: "95.213.191.120"},
+		Status:         "deleted",
+		MadeFrom:       "ubuntu_14.04_64_002_master",
+		CTID:           10299,
+		PrivateAddress: &ScaletAddress{Netmask: "", Gateway: "", Address: ""},
+	}
+
+	if !reflect.DeepEqual(sclt, expected) {
+		t.Errorf("Scalet.Delete returned %+v, expected %+v", sclt, expected)
+	}
+}

@@ -17,6 +17,7 @@ type ScaletService interface {
 	Halt(int) (*Scalet, *Response, error)
 	Start(int) (*Scalet, *Response, error)
 	UpdatePlan(*ScaletUpdatePlanRequest) (*Scalet, *Response, error)
+	Delete(int) (*Scalet, *Response, error)
 }
 
 type ScaletServiceOp struct {
@@ -215,6 +216,24 @@ func (s *ScaletServiceOp) UpdatePlan(rplanUpdateRequest *ScaletUpdatePlanRequest
 	}
 
 	scalet := new(Scalet)
+	resp, err := s.client.Do(req, scalet)
+	if err != nil {
+		return nil, nil, err
+	}
+	return scalet, resp, err
+}
+
+func (s *ScaletServiceOp) Delete(ctid int) (*Scalet, *Response, error) {
+	if ctid < 1 {
+		return nil, nil, NewArgError("scaletID", "cannot be less than 1")
+	}
+	path := fmt.Sprintf("%s/%d", scaletsBasePath, ctid)
+	req, err := s.client.NewRequest("DELETE", path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	scalet := &Scalet{}
 	resp, err := s.client.Do(req, scalet)
 	if err != nil {
 		return nil, nil, err

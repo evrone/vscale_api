@@ -563,7 +563,7 @@ func TestScaletUpdatePlan(t *testing.T) {
 
 		testMethod(t, r, "POST")
 
-		respons := `
+		response := `
     {
       "hostname":"cs10299.vscale.ru",
       "locked":false,
@@ -587,7 +587,7 @@ func TestScaletUpdatePlan(t *testing.T) {
       "ctid":10299,
       "private_address":{}
     }`
-		fmt.Fprint(w, respons)
+		fmt.Fprint(w, response)
 	})
 
 	sclt, _, err := client.Scalet.UpdatePlan(updateRplanRequest)
@@ -671,5 +671,77 @@ func TestScaletDelete(t *testing.T) {
 
 	if !reflect.DeepEqual(sclt, expected) {
 		t.Errorf("Scalet.Delete returned %+v, expected %+v", sclt, expected)
+	}
+}
+
+func AddSSHKeyToScalet(t *testing.T) {
+	setup()
+	defer teardown()
+
+	appendSSHKeyToScalet := &SSHKeyAppendRequest{
+		CTID: 10299,
+		Keys: []int{15, 16},
+	}
+	mux.HandleFunc("/v1/sshkeys/scalets/10299", func(w http.ResponseWriter, r *http.Request) {
+		v := new(SSHKeyAppendRequest)
+		if err := json.NewDecoder(r.Body).Decode(v); err != nil {
+			t.Fatalf("decode json: %v", err)
+		}
+
+		testMethod(t, r, "PATCH")
+
+		response := `
+    {
+      "hostname":"cs10299.vscale.ru",
+      "locked":false,
+      "location":"spb0",
+      "rplan":"huge",
+      "name":"MyServer",
+      "active":true,
+      "keys":[
+        {
+          "id":15,
+          "name":"publickeyname"
+        },
+        {
+          "id":16,
+          "name":"somekeyname"
+        }
+      ],
+      "public_address":{
+         "netmask":"255.255.255.0",
+         "gateway":"95.213.191.1",
+         "address":"95.213.191.120"
+      },
+      "status":"started",
+      "made_from":"ubuntu_14.04_64_002_master",
+      "ctid":10299,
+      "private_address":{}
+    }`
+
+		fmt.Fprint(w, response)
+	})
+
+	sclt, _, err := client.Scalet.AddSSHKeyToScalet(appendSSHKeyToScalet)
+	if err != nil {
+		t.Errorf("Scalet.AddSSHKeyToScalet returned error: %v", err)
+	}
+
+	expected := &Scalet{
+		Name:           "MyServer",
+		Hostname:       "cs10299.vscale.ru",
+		Locked:         false,
+		Location:       "spb0",
+		Rplan:          "huge",
+		Active:         true,
+		Keys:           []SSHKey{SSHKey{ID: 15, Name: "publickeyname"}, SSHKey{ID: 16, Name: "somekeyname"}},
+		PublicAddress:  &ScaletAddress{Netmask: "255.255.255.0", Gateway: "95.213.191.1", Address: "95.213.191.120"},
+		Status:         "started",
+		MadeFrom:       "ubuntu_14.04_64_002_master",
+		CTID:           10299,
+		PrivateAddress: &ScaletAddress{Netmask: "", Gateway: "", Address: ""},
+	}
+	if !reflect.DeepEqual(sclt, expected) {
+		t.Errorf("Scalet.AddSSHKeyToScalet returned %+v, expected %+v", sclt, expected)
 	}
 }

@@ -18,6 +18,7 @@ type ScaletService interface {
 	Start(int) (*Scalet, *Response, error)
 	UpdatePlan(*ScaletUpdatePlanRequest) (*Scalet, *Response, error)
 	Delete(int) (*Scalet, *Response, error)
+	AddSSHKeyToScalet(*SSHKeyAppendRequest) (*Scalet, *Response, error)
 }
 
 type ScaletServiceOp struct {
@@ -65,6 +66,11 @@ type ScaletRebuildRequest struct {
 type ScaletUpdatePlanRequest struct {
 	ID    int
 	Rplan string `json:"rplan"`
+}
+
+type SSHKeyAppendRequest struct {
+	CTID int
+	Keys []int `json:"keys"`
 }
 
 func (s Scalet) String() string {
@@ -234,6 +240,28 @@ func (s *ScaletServiceOp) Delete(ctid int) (*Scalet, *Response, error) {
 	}
 
 	scalet := &Scalet{}
+	resp, err := s.client.Do(req, scalet)
+	if err != nil {
+		return nil, nil, err
+	}
+	return scalet, resp, err
+}
+
+func (s *ScaletServiceOp) AddSSHKeyToScalet(appendSSHKeyRequest *SSHKeyAppendRequest) (*Scalet, *Response, error) {
+	if appendSSHKeyRequest == nil {
+		return nil, nil, NewArgError("appendSSHKeyRequest", "cannot be nil")
+	}
+	if appendSSHKeyRequest.CTID < 1 {
+		return nil, nil, NewArgError("appendSSHKeyRequest.CTID", "cannot be less than 1")
+	}
+
+	path := fmt.Sprintf("%s/scalets/%d", sshBaseUrl, appendSSHKeyRequest.CTID)
+	req, err := s.client.NewRequest("PATCH", path, appendSSHKeyRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	scalet := new(Scalet)
 	resp, err := s.client.Do(req, scalet)
 	if err != nil {
 		return nil, nil, err

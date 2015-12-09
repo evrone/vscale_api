@@ -30,8 +30,8 @@ func TestAccountGet(t *testing.T) {
           "surname": "SurName"
       }
     }`
-		fmt.Fprint(w, response)
 
+		fmt.Fprint(w, response)
 	})
 
 	acct, _, err := client.Account.Get()

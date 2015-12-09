@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	defaultApiEndpoint = "https://api.vscale.io/v1/"
+	defaultApiEndpoint = "https://api.vscale.io"
 	mediaType          = "application/json"
 )
 
@@ -24,9 +24,10 @@ type Client struct {
 	token   string
 
 	// Vscale services
-	Account AccountService
-	Scalet  ScaletService
-	SSHKey  SSHService
+	Account    AccountService
+	Background BackgroundService
+	Scalet     ScaletService
+	SSHKey     SSHService
 
 	// Optional
 	onRequestCompleted RequestCompletionCallback
@@ -61,6 +62,10 @@ func (e *ArgError) Error() string {
 	return fmt.Sprintf("%s is invalid because %s", e.arg, e.reason)
 }
 
+func New(token string) *Client {
+	return NewClient(http.DefaultClient, token)
+}
+
 func NewClient(httpClient *http.Client, token string) *Client {
 	if httpClient == nil {
 		httpClient = http.DefaultClient
@@ -71,6 +76,7 @@ func NewClient(httpClient *http.Client, token string) *Client {
 	c := &Client{client: httpClient, BaseURL: baseUrl, token: token}
 
 	c.Account = &AccountServiceOp{client: c}
+	c.Background = &BackgroundServiceOp{client: c}
 	c.Scalet = &ScaletServiceOp{client: c}
 	c.SSHKey = &SSHServiceOp{client: c}
 

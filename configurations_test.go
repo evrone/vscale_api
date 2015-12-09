@@ -77,6 +77,6 @@ func TestRplans(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(collection, expected) {
-		t.Errorf("Configurations.Rplans returned %+v, expected: %+v", collection, expected4096)
+		t.Errorf("Configurations.Rplans returned %+v, expected: %+v", collection, expected)
 	}
 }

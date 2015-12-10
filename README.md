@@ -1,13 +1,13 @@
 # Vscale API [WIP]
 
-[![Vexor status](https://ci.vexor.io/projects/0fccbce3-edc7-49f4-9677-6996e94e3fa5/status.svg)](https://ci.vexor.io/ui/projects/0fccbce3-edc7-49f4-9677-6996e94e3fa5/builds)
+[![Vexor status](https://ci.vexor.io/projects/4089aaeb-e6f6-4400-a8ec-0d00c6db8c9f/status.svg)](https://ci.vexor.io/ui/projects/4089aaeb-e6f6-4400-a8ec-0d00c6db8c9f/builds)
 
 ## Installation and documentation
 
 To install `Vscale API`, simply run:
 
 ```
-$ go get github.com/openit-lib/vscale_api
+$ go get github.com/evrone/vscale_api
 ```
 
 ## Getting Started
@@ -16,7 +16,7 @@ $ go get github.com/openit-lib/vscale_api
 package main
 import(
   "fmt"
-  vscale "github.com/openit-lib/vscale_api"
+  vscale "github.com/evrone/vscale_api"
 )
 
 func GetAccountInfo() {

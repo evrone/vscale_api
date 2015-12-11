@@ -27,6 +27,7 @@ type Client struct {
 	Account        AccountService
 	Background     BackgroundService
 	Configurations ConfigurationsService
+	Notifications  NotificationsService
 	Scalet         ScaletService
 	SSHKey         SSHService
 
@@ -79,6 +80,7 @@ func NewClient(httpClient *http.Client, token string) *Client {
 	c.Account = &AccountServiceOp{client: c}
 	c.Background = &BackgroundServiceOp{client: c}
 	c.Configurations = &ConfigurationsServiceOp{client: c}
+	c.Notifications = &NotificationsServiceOp{client: c}
 	c.Scalet = &ScaletServiceOp{client: c}
 	c.SSHKey = &SSHServiceOp{client: c}
 

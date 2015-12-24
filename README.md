@@ -1,4 +1,4 @@
-# Vscale API [WIP]
+# Vscale API
 
 [![Vexor status](https://ci.vexor.io/projects/4089aaeb-e6f6-4400-a8ec-0d00c6db8c9f/status.svg)](https://ci.vexor.io/ui/projects/4089aaeb-e6f6-4400-a8ec-0d00c6db8c9f/builds)
 

@@ -34,5 +34,3 @@ func GetAccountInfo() {
 01. Fork
 02. Change
 03. PR
-
-*WIP*
